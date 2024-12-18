@@ -17,10 +17,19 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(2),
+    width: '75%',
   },
   header: {
     display: 'flex',
     alignItems: 'center',
+    flexDirection: 'row',
+  },
+  headerTitle: {
+    alignItems: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
   },
   title: {
     fontSize: theme.spacing(3),
@@ -79,9 +88,11 @@ const RegisterPage = () => {
               <ArrowBackIcon />
             </IconButton>
           )}
-          <Typography className={classes.title} color="primary">
+          <div className={classes.headerTitle}>
+          <Typography  className={classes.title} color="primary">
             {t('loginRegister')}
           </Typography>
+          </div>
         </div>
         <TextField
           required

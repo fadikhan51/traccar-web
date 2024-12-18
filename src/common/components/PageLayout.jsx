@@ -34,7 +34,20 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
-  },
+    overflowY: 'auto',
+    '&::-webkit-scrollbar': {
+      width: '5px', // Scrollbar width
+      margin: '2px', // Add spacing around scrollbar
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor:'rgba(163, 163, 163, 0.45)', // Light gray scrollbar
+      borderRadius: '4px', // Rounded edges
+      margin: '2px', // Add spacing around thumb
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: 'transparent',
+      margin: '2px', // Add spacing around track
+    },  },
   mobileDrawer: {
     width: theme.dimensions.drawerWidthTablet,
   },
@@ -48,6 +61,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'column',
     overflowY: 'auto',
   },
+  
 }));
 
 const PageTitle = ({ breadcrumbs }) => {

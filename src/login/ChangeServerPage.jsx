@@ -18,6 +18,7 @@ const officialServers = [
   'https://server.traccar.org',
   'http://localhost:8082',
   'http://localhost:3000',
+  'http://139.59.171.130:8082',
 ];
 
 const useStyles = makeStyles((theme) => ({

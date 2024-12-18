@@ -1,13 +1,35 @@
 import React from 'react';
-import { useMediaQuery, Paper } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
+import { Paper, useMediaQuery } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { useTheme } from '@mui/material/styles';
 import LogoImage from './LogoImage';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
-    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    background: theme.palette.background.default,
+  },
+  paper: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '70%',
+    height: '75%',
+    border: '1px solid #E0E0E0',
+    boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.25)',
+    [theme.breakpoints.down('sm')]: {
+      width: '90%',
+      height: '80%',
+    },
+  },
+  formSection: {
+    flex: 7, // 70% height
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing(4),
   },
   sidebar: {
     display: 'flex',
@@ -23,21 +45,12 @@ const useStyles = makeStyles((theme) => ({
       width: '0px',
     },
   },
-  paper: {
+  logoSection: {
+    flex: 3, // 30% height
     display: 'flex',
-    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    flex: 1,
-    boxShadow: '-2px 0px 16px rgba(0, 0, 0, 0.25)',
-    [theme.breakpoints.up('lg')]: {
-      padding: theme.spacing(0, 25, 0, 0),
-    },
-  },
-  form: {
-    maxWidth: theme.spacing(52),
-    padding: theme.spacing(5),
-    width: '100%',
+    background: theme.palette.grey[200],
   },
 }));
 
@@ -47,13 +60,13 @@ const LoginLayout = ({ children }) => {
 
   return (
     <main className={classes.root}>
-      <div className={classes.sidebar}>
+      <Paper className={classes.paper}>
+        <div className={classes.formSection}>
+          {children}
+        </div>
+        <div className={classes.sidebar}>
         {!useMediaQuery(theme.breakpoints.down('lg')) && <LogoImage color={theme.palette.secondary.contrastText} />}
       </div>
-      <Paper className={classes.paper}>
-        <form className={classes.form}>
-          {children}
-        </form>
       </Paper>
     </main>
   );

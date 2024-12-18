@@ -18,6 +18,8 @@ import { handleLoginTokenListeners, nativeEnvironment, nativePostMessage } from 
 import LogoImage from './LogoImage';
 import { useCatch } from '../reactHelper';
 import Loader from '../common/components/Loader';
+import Logo from '../resources/images/welcome.svg?react';
+
 
 const useStyles = makeStyles((theme) => ({
   options: {
@@ -31,6 +33,7 @@ const useStyles = makeStyles((theme) => ({
   container: {
     display: 'flex',
     flexDirection: 'column',
+    width: '75%',
     gap: theme.spacing(2),
   },
   extraContainer: {
@@ -173,7 +176,8 @@ const LoginPage = () => {
         )}
       </div>
       <div className={classes.container}>
-        {useMediaQuery(theme.breakpoints.down('lg')) && <LogoImage color={theme.palette.primary.main} />}
+        {/* {useMediaQuery(theme.breakpoints.down('lg')) && <LogoImage color={theme.palette.primary.main} />} */}
+        <Logo color={theme.palette.primary.main} />
         <TextField
           required
           error={failed}

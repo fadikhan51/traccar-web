@@ -11,6 +11,13 @@ import { sessionActions } from './store';
 import UpdateController from './UpdateController';
 import TermsDialog from './common/components/TermsDialog';
 import Loader from './common/components/Loader';
+import {
+  RecoilRoot,
+  atom,
+  selector,
+  useRecoilState,
+  useRecoilValue,
+} from 'recoil';
 
 const useStyles = makeStyles(() => ({
   page: {
@@ -69,6 +76,7 @@ const App = () => {
   }
   return (
     <>
+    <RecoilRoot>
       <SocketController />
       <CachingController />
       <UpdateController />
@@ -80,6 +88,7 @@ const App = () => {
           <BottomMenu />
         </div>
       )}
+      </RecoilRoot>
     </>
   );
 };
