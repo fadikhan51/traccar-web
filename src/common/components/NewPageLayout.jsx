@@ -40,6 +40,7 @@ const useStyles = (colors) => makeStyles((theme) => ({
     height: "100%",
     display: "flex",
     flexDirection: "column",
+    backgroundColor: `${colors.accent}`,
   },
   desktopDrawer: {
     backgroundColor: `${colors.accent} !important`,

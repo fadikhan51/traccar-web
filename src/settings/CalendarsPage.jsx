@@ -10,10 +10,14 @@ import CollectionFab from './components/CollectionFab';
 import CollectionActions from './components/CollectionActions';
 import TableShimmer from '../common/components/TableShimmer';
 import SearchHeader, { filterByKeyword } from './components/SearchHeader';
-import useSettingsStyles from './common/useSettingsStyles';
+import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import useStyles from '../common/theme/useGlobalStyles';
 
 const CalendarsPage = () => {
-  const classes = useSettingsStyles();
+  const [colors, setColors] = useRecoilState(colorsAtom);
+  const classes = useStyles(colors)();
+
   const t = useTranslation();
 
   const [timestamp, setTimestamp] = useState(Date.now());

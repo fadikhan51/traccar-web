@@ -11,6 +11,7 @@ import { sessionActions } from './store';
 import UpdateController from './UpdateController';
 import TermsDialog from './common/components/TermsDialog';
 import Loader from './common/components/Loader';
+import { collection, getDocs } from 'firebase/firestore'
 import {
   RecoilRoot,
   atom,
@@ -23,6 +24,7 @@ const useStyles = makeStyles(() => ({
   page: {
     flexGrow: 1,
     overflow: 'auto',
+    backgroundColor: "white"
   },
   menu: {
     zIndex: 4,
@@ -83,11 +85,11 @@ const App = () => {
       <div className={classes.page}>
         <Outlet />
       </div>
-      {!desktop && (
+      {/* {!desktop && (
         <div className={classes.menu}>
           <BottomMenu />
         </div>
-      )}
+      )} */}
       </RecoilRoot>
     </>
   );

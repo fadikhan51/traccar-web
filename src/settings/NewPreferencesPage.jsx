@@ -3,9 +3,6 @@ import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Typography,
   Container,
   FormControl,
@@ -67,8 +64,15 @@ const useStyles = (colors) =>
           "&.Mui-focused": {
             color: colors.highlight,
           },
+          "&.Mui-disabled": {
+            color: `${colors.darkgray} !important`,
+            "&:hover": {
+              color: `${colors.highlight} !important`,
+            },
+          },
         },
         "& .MuiOutlinedInput-root": {
+          backgroundColor: colors.accent,
           "& fieldset": {
             borderColor: colors.gray,
           },
@@ -77,6 +81,16 @@ const useStyles = (colors) =>
           },
           "&.Mui-focused fieldset": {
             borderColor: colors.accent,
+          },
+          "& .MuiInputBase-input": {
+            color: colors.darkgray,
+            "&.Mui-disabled": {
+              color: `${colors.darkgray} !important`,
+              "-webkit-text-fill-color": `${colors.darkgray} !important`,
+            },
+          },
+          "&.Mui-disabled .MuiInputLabel-root": {
+            color: `${colors.darkgray} !important`,
           },
         },
         "& .MuiSelect-select": {
@@ -124,6 +138,26 @@ const useStyles = (colors) =>
           },
         },
       },
+      ".MuiButton-root": {
+        color: `${colors.darkgray} !important`,
+        "&.MuiButton-outlined": {
+          borderColor: colors.gray,
+          "&:hover": {
+            borderColor: colors.secondary,
+            backgroundColor: colors.accent,
+          },
+        },
+        "&.MuiButton-contained": {
+          backgroundColor: `${colors.accent} !important`,
+          "&:hover": {
+            backgroundColor: `${colors.secondary} !important`,
+          },
+          "&:disabled": {
+            backgroundColor: `${colors.muted} !important`,
+            color: `${colors.gray} !important`,
+          },
+        },
+      },
     },
     fontSize: {
       fontSize: "0.9rem !important",
@@ -145,6 +179,11 @@ const useStyles = (colors) =>
     },
     gridContainer: {
       marginBottom: theme.spacing(2),
+    },
+    buttons: {
+      display: "flex",
+      gap: theme.spacing(2),
+      marginTop: theme.spacing(2),
     },
   }));
 
@@ -658,7 +697,6 @@ const NewPreferencesPage = () => {
                   </Typography>
                   <CardContent>
                     <TextField
-                    className={{backgroundColor: "white !important"}}
                       value={versionApp}
                       label={t("settingsAppVersion")}
                       disabled

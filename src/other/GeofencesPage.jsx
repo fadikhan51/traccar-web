@@ -18,7 +18,86 @@ import MapGeocoder from '../map/geocoder/MapGeocoder';
 import { errorsActions } from '../store';
 import MapScale from '../map/MapScale';
 
-const useStyles = makeStyles((theme) => ({
+import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+
+const useStyles = (colors) => makeStyles((theme) => ({
+  "@import": [
+      "url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap)",
+    ],
+    "@global": {
+      "*": {
+        fontFamily: "Poppins, sans-serif",
+        color: colors.darkgray,
+      },
+      ".MuiFormControl-root": {
+        marginBottom: `${theme.spacing(1)} !important`,
+        "& .MuiInputLabel-root": {
+          color: colors.darkgray,
+          "&.Mui-focused": {
+            color: colors.highlight,
+          },
+        },
+        "& .MuiOutlinedInput-root": {
+          "& fieldset": {
+            borderColor: colors.gray,
+          },
+          "&:hover fieldset": {
+            borderColor: colors.secondary,
+          },
+          "&.Mui-focused fieldset": {
+            borderColor: colors.accent,
+          },
+        },
+        "& .MuiSelect-select": {
+          color: colors.darkgray,
+          backgroundColor: colors.accent,
+        },
+      },
+      //Checkbox style
+      ".MuiFormControlLabel-label": {
+        fontSize: "0.9rem !important",
+      },
+      ".MuiAutocomplete-root": {
+        marginBottom: theme.spacing(2),
+        "& .MuiInputLabel-root": {
+          color: colors.darkgray,
+          "&.Mui-focused": {
+            color: colors.highlight,
+          },
+        },
+        "& .MuiOutlinedInput-root": {
+          backgroundColor: colors.accent,
+          "& fieldset": {
+            // borderColor: colors.darkgray, // Sets the borderColor of autocomplete to gray when not focused
+          },
+          "&:hover fieldset": {
+            borderColor: colors.secondary,
+          },
+          "&.Mui-focused fieldset": {
+            borderColor: colors.accent,
+          },
+        },
+        "& .MuiAutocomplete-tag": {
+          color: colors.darkgray,
+          backgroundColor: colors.muted,
+        },
+        "& .MuiAutocomplete-popupIndicator": {
+          color: colors.accent,
+        },
+        "& .MuiAutocomplete-paper": {
+          backgroundColor: colors.darkgray,
+        },
+        "& .MuiAutocomplete-listbox": {
+          "& .MuiAutocomplete-option": {
+            color: colors.darkgray,
+          },
+        },
+      },
+    },
+    fontSize: {
+      fontSize: "0.9rem !important",
+    },
   root: {
     height: '100%',
     display: 'flex',
@@ -36,6 +115,8 @@ const useStyles = makeStyles((theme) => ({
   drawer: {
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: colors.white + ' !important',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     [theme.breakpoints.up('sm')]: {
       width: theme.dimensions.drawerWidthDesktop,
     },
@@ -55,7 +136,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const GeofencesPage = () => {
-  const classes = useStyles();
+  const [colors, setColors] = useRecoilState(colorsAtom);
+
+  const classes = useStyles(colors)();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const t = useTranslation();

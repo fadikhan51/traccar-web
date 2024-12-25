@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-  Accordion, AccordionSummary, AccordionDetails, Typography, TextField,
+  Typography, TextField, Container,
+  Card,  CardContent, Grid, FormControl
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditItemView from './components/EditItemView';
-import EditAttributesAccordion from './components/EditAttributesAccordion';
+import EditAttributesCard from './components/EditAttributesCard';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import useGeofenceAttributes from '../common/attributes/useGeofenceAttributes';
-import SettingsMenu from './components/SettingsMenu';
+import NewSettingsMenu from './components/NewSettingsMenu';
 import SelectField from '../common/components/SelectField';
 import { geofencesActions } from '../store';
-import useSettingsStyles from './common/useSettingsStyles';
 
+import { makeStyles } from "@mui/styles";
+
+import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import useStyles from '../common/theme/useGlobalStyles';
+  
 const GeofencePage = () => {
-  const classes = useSettingsStyles();
+  const [colors, setColors] = useRecoilState(colorsAtom);
+
+  const classes = useStyles(colors)();
   const dispatch = useDispatch();
   const t = useTranslation();
 
@@ -35,33 +43,45 @@ const GeofencePage = () => {
       setItem={setItem}
       validate={validate}
       onItemSaved={onItemSaved}
-      menu={<SettingsMenu />}
+      menu={<NewSettingsMenu />}
       breadcrumbs={['settingsTitle', 'sharedGeofence']}
-    >
+    ><Container maxWidth="lg" className={classes.container}>
+    <Grid container spacing={2} className={classes.gridContainer}>
       {item && (
         <>
-          <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">
-                {t('sharedRequired')}
+          <Grid item xs={12} lg={6} style={{ display: 'flex' }}>
+            <Card className={classes.card} style={{ width: '100%' }}>
+              <Typography variant="h6" className={classes.cardTitle}>
+                {t("sharedRequired")}
               </Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
-              <TextField
+              <CardContent>
+                <FormControl
+                  sx={classes.formControl}
+                  fullWidth
+                  className={classes.formControl}
+                >
+                  <TextField
                 value={item.name || ''}
                 onChange={(event) => setItem({ ...item, name: event.target.value })}
                 label={t('sharedName')}
               />
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">
-                {t('sharedExtra')}
+                  </FormControl>
+                  </CardContent>
+                  </Card>
+                  </Grid>
+
+                  <Grid item xs={12} lg={6} style={{ display: 'flex' }}>
+            <Card className={classes.card} style={{ width: '100%' }}>
+              <Typography variant="h6" className={classes.cardTitle}>
+                {t("sharedExtra")}
               </Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
-              <TextField
+              <CardContent>
+                <FormControl
+                  sx={classes.formControl}
+                  fullWidth
+                  className={classes.formControl}
+                >
+                <TextField
                 value={item.description || ''}
                 onChange={(event) => setItem({ ...item, description: event.target.value })}
                 label={t('sharedDescription')}
@@ -72,15 +92,20 @@ const GeofencePage = () => {
                 endpoint="/api/calendars"
                 label={t('sharedCalendar')}
               />
-            </AccordionDetails>
-          </Accordion>
-          <EditAttributesAccordion
+                  </FormControl>
+                  </CardContent>
+                  </Card>
+                  </Grid>
+
+          <EditAttributesCard
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
             definitions={geofenceAttributes}
           />
         </>
       )}
+      </Grid>
+      </Container>
     </EditItemView>
   );
 };

@@ -10,23 +10,33 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Card,
+  CardContent,
+  Grid,
+  Container,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { prefixString } from '../common/util/stringUtils';
 import EditItemView from './components/EditItemView';
-import EditAttributesAccordion from './components/EditAttributesAccordion';
+import EditAttributesCard from './components/EditAttributesCard';
 import { useAttributePreference } from '../common/util/preferences';
 import {
   speedFromKnots, speedToKnots, distanceFromMeters, distanceToMeters,
 } from '../common/util/converter';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import usePositionAttributes from '../common/attributes/usePositionAttributes';
-import SettingsMenu from './components/SettingsMenu';
-import useSettingsStyles from './common/useSettingsStyles';
+import NewSettingsMenu from './components/NewSettingsMenu';
+import { makeStyles } from "@mui/styles";
+
+import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import useStyles from '../common/theme/useGlobalStyles';
 
 const MaintenancePage = () => {
-  const classes = useSettingsStyles();
-  const t = useTranslation();
+  const [colors, setColors] = useRecoilState(colorsAtom);
+
+  const classes = useStyles(colors)();
+    const t = useTranslation();
 
   const positionAttributes = usePositionAttributes(t);
 
@@ -124,19 +134,25 @@ const MaintenancePage = () => {
       item={item}
       setItem={setItem}
       validate={validate}
-      menu={<SettingsMenu />}
+      menu={<NewSettingsMenu />}
       breadcrumbs={['settingsTitle', 'sharedMaintenance']}
     >
-      {item && (
-        <>
-          <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1">
-                {t('sharedRequired')}
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails className={classes.details}>
-              <TextField
+      <Container maxWidth="lg" className={classes.container}>
+        <Grid container spacing={2} className={classes.gridContainer}>
+          {item && (
+            <>
+              <Grid item xs={12} lg={6} style={{display: "flex"}}>
+                <Card className={classes.card} style={{height: "100%", width: "100%"}}>
+                  <Typography variant="h6" className={classes.cardTitle}>
+                    {t("sharedRequired")}
+                  </Typography>
+                  <CardContent>
+                    <FormControl
+                      sx={classes.formControl}
+                      fullWidth
+                      className={classes.formControl}
+                    >
+                      <TextField
                 value={item.name || ''}
                 onChange={(e) => setItem({ ...item, name: e.target.value })}
                 label={t('sharedName')}
@@ -165,15 +181,20 @@ const MaintenancePage = () => {
                 onChange={(e) => setItem({ ...item, period: valueToRaw(false, e.target.value) })}
                 label={labels.period ? `${t('maintenancePeriod')} (${labels.period})` : t('maintenancePeriod')}
               />
-            </AccordionDetails>
-          </Accordion>
-          <EditAttributesAccordion
+                      </FormControl>
+                      </CardContent>
+                      </Card>
+                      </Grid>
+
+          <EditAttributesCard
             attributes={item.attributes}
             setAttributes={(attributes) => setItem({ ...item, attributes })}
             definitions={{}}
           />
         </>
       )}
+      </Grid>
+      </Container>
     </EditItemView>
   );
 };

@@ -7,8 +7,15 @@ import { useTranslation } from '../../common/components/LocalizationProvider';
 import SelectField from '../../common/components/SelectField';
 import { prefixString } from '../../common/util/stringUtils';
 import useCommandAttributes from '../../common/attributes/useCommandAttributes';
+import useStyles from "/src/common/theme/useGlobalStyles";
+import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+
 
 const BaseCommandView = ({ deviceId, item, setItem }) => {
+  const [colors, setColors] = useRecoilState(colorsAtom);
+  const classes = useStyles(colors)();
+  
   const t = useTranslation();
 
   const textEnabled = useSelector((state) => state.session.server.textEnabled);
