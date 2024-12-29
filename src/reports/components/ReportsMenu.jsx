@@ -16,6 +16,18 @@ import { useTranslation } from '../../common/components/LocalizationProvider';
 import { useAdministrator, useRestriction } from '../../common/util/permissions';
 import MenuItem from '../../common/components/MenuItem';
 
+import MergeTypeRoundedIcon from '@mui/icons-material/MergeTypeRounded';
+import RouteRoundedIcon from '@mui/icons-material/RouteRounded';
+import TodayRoundedIcon from '@mui/icons-material/TodayRounded';
+import CancelPresentationRoundedIcon from '@mui/icons-material/CancelPresentationRounded';
+import BarChartRoundedIcon from '@mui/icons-material/BarChartRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+import ModeOfTravelRoundedIcon from '@mui/icons-material/ModeOfTravelRounded';
+import PivotTableChartRoundedIcon from '@mui/icons-material/PivotTableChartRounded';
+import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
+import SummarizeRoundedIcon from '@mui/icons-material/SummarizeRounded';
+
 const ReportsMenu = () => {
   const t = useTranslation();
   const location = useLocation();
@@ -29,49 +41,49 @@ const ReportsMenu = () => {
         <MenuItem
           title={t('reportCombined')}
           link="/reports/combined"
-          icon={<StarIcon />}
+          icon={<MergeTypeRoundedIcon />}
           selected={location.pathname === '/reports/combined'}
         />
         <MenuItem
           title={t('reportRoute')}
           link="/reports/route"
-          icon={<TimelineIcon />}
+          icon={<RouteRoundedIcon />}
           selected={location.pathname === '/reports/route'}
         />
         <MenuItem
           title={t('reportEvents')}
           link="/reports/event"
-          icon={<NotificationsActiveIcon />}
+          icon={<TodayRoundedIcon />}
           selected={location.pathname === '/reports/event'}
         />
         <MenuItem
           title={t('reportTrips')}
           link="/reports/trip"
-          icon={<PlayCircleFilledIcon />}
+          icon={<ModeOfTravelRoundedIcon />}
           selected={location.pathname === '/reports/trip'}
         />
         <MenuItem
           title={t('reportStops')}
           link="/reports/stop"
-          icon={<PauseCircleFilledIcon />}
+          icon={<CancelPresentationRoundedIcon />}
           selected={location.pathname === '/reports/stop'}
         />
         <MenuItem
           title={t('reportSummary')}
           link="/reports/summary"
-          icon={<FormatListBulletedIcon />}
+          icon={<SummarizeRoundedIcon />}
           selected={location.pathname === '/reports/summary'}
         />
         <MenuItem
           title={t('reportChart')}
           link="/reports/chart"
-          icon={<TrendingUpIcon />}
+          icon={<BarChartRoundedIcon />}
           selected={location.pathname === '/reports/chart'}
         />
         <MenuItem
           title={t('reportReplay')}
           link="/replay"
-          icon={<RouteIcon />}
+          icon={<ReplayRoundedIcon />}
         />
       </List>
       <Divider />
@@ -79,14 +91,14 @@ const ReportsMenu = () => {
         <MenuItem
           title={t('sharedLogs')}
           link="/reports/logs"
-          icon={<NotesIcon />}
+          icon={<DescriptionRoundedIcon />}
           selected={location.pathname === '/reports/logs'}
         />
         {!readonly && (
           <MenuItem
             title={t('reportScheduled')}
             link="/reports/scheduled"
-            icon={<EventRepeatIcon />}
+            icon={<ScheduleRoundedIcon />}
             selected={location.pathname === '/reports/scheduled'}
           />
         )}
@@ -94,7 +106,7 @@ const ReportsMenu = () => {
           <MenuItem
             title={t('statisticsTitle')}
             link="/reports/statistics"
-            icon={<BarChartIcon />}
+            icon={<PivotTableChartRoundedIcon />}
             selected={location.pathname === '/reports/statistics'}
           />
         )}

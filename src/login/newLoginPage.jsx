@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import makeStyles from "@mui/styles/makeStyles";
 import { Snackbar, IconButton } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 import Logo from "../resources/images/logo.png";
 import SampleLogo from "../resources/images/samplelogo.svg?react";
 
@@ -10,21 +10,33 @@ import { useNavigate } from "react-router-dom";
 import { snackBarDurationShortMs } from "../common/util/duration";
 import { useCatch, useEffectAsync } from "../reactHelper";
 import { sessionActions } from "../store";
+import { useRecoilState, useRecoilValue } from "recoil";
 
+import dayjs from "dayjs";
+import { useTheme } from "@mui/material/styles";
+import {
+  useLocalization,
+  useTranslation,
+} from "../common/components/LocalizationProvider";
+import usePersistedState from "../common/util/usePersistedState";
+import {
+  handleLoginTokenListeners,
+  nativeEnvironment,
+  nativePostMessage,
+} from "../common/components/NativeInterface";
+import Loader from "../common/components/Loader";
 
+import { colorsAtom } from "../recoil/atoms/colorsAtom";
+import { companyLogoAtom } from "../recoil/atoms/companyLogoAtom";
+import Base64Image from "../common/components/Base64Image";
+import useActiveTheme from "../common/theme/useActiveTheme";
+import useCompanyLogo from "../common/theme/useCompanyLogo";
 
-import dayjs from 'dayjs';
-import { useTheme } from '@mui/material/styles';
-import { useLocalization, useTranslation } from '../common/components/LocalizationProvider';
-import usePersistedState from '../common/util/usePersistedState';
-import { handleLoginTokenListeners, nativeEnvironment, nativePostMessage } from '../common/components/NativeInterface';
-import Loader from '../common/components/Loader';
-
-const useStyles = makeStyles((theme) => ({
+const useStyles = (colors) => makeStyles((theme) => ({
   root: {
     width: "100%",
     height: "100%",
-    background: "linear-gradient(to right, #d8bfd8, #dda0dd)",
+    background: `linear-gradient(to bottom right, ${colors.highlight}, ${colors.accent}) !important`,
     backdropFilter: "blur(15px)",
     WebkitBackdropFilter: "blur(15px)",
     display: "flex",
@@ -34,9 +46,9 @@ const useStyles = makeStyles((theme) => ({
   container: {
     width: "75%",
     height: "75%",
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     borderRadius: "10px",
-    boxShadow: "0px 0px 10px rgba(0,0,0,0.1)",
+    boxShadow: `0px 0px 5px ${colors.gray}`,
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
@@ -61,20 +73,20 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    color: "#666666",
+    color: colors.darkgray,
     fontSize: "12px",
   },
   signInButton: {
     padding: "8px 16px",
-    backgroundColor: "#fff",
-    border: "1px solid #6a5acd",
-    color: "#6a5acd",
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.primary}`,
+    color: colors.primary,
     borderRadius: "5px",
     cursor: "pointer",
     fontSize: "12px",
     "&:hover": {
-      backgroundColor: "#6a5acd",
-      color: "#fff",
+      backgroundColor: colors.primary,
+      color: colors.white,
     },
   },
   sampleLogo: {
@@ -123,7 +135,7 @@ const useStyles = makeStyles((theme) => ({
     objectFit: "contain",
   },
   heading: {
-    color: "#333",
+    color: colors.darkgray,
     fontSize: "20px",
     fontWeight: "bold",
     margin: 0,
@@ -135,7 +147,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   subheading: {
-    color: "#888",
+    color: colors.darkgray,
     fontSize: "14px",
     margin: 0,
     alignSelf: "flex-start",
@@ -144,7 +156,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   inputLabel: {
-    color: "#333",
+    color: colors.darkgray,
     fontSize: "12px",
     marginBottom: "3px",
     alignSelf: "flex-start",
@@ -152,27 +164,27 @@ const useStyles = makeStyles((theme) => ({
   input: {
     width: "100%",
     padding: "10px",
-    border: "1px solid #ddd",
+    border: `1px solid ${colors.gray}`,
     borderRadius: "5px",
     fontSize: "13px",
     "&:focus": {
       outline: "none",
-      borderColor: "#6a5acd",
-      boxShadow: "0 0 0 2px rgba(106, 90, 205, 0.2)",
+      borderColor: colors.primary,
+      boxShadow: `0 0 0 2px ${colors.shadow}`,
     },
   },
   loginButton: {
     width: "100%",
     padding: "10px",
-    backgroundColor: "#6a5acd",
-    color: "white",
+    backgroundColor: colors.primary,
+    color: colors.white,
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
     fontSize: "14px",
     transition: "background-color 0.3s ease",
     "&:hover": {
-      backgroundColor: "#5a4abd",
+      backgroundColor: colors.tertiary,
     },
   },
   mobileRegister: {
@@ -183,10 +195,10 @@ const useStyles = makeStyles((theme) => ({
       justifyContent: "center",
       gap: "10px",
       marginTop: "15px",
-      color: "#666666",
+      color: colors.darkgray,
       fontSize: "12px",
       "& a": {
-        color: "#6a5acd",
+        color: colors.primary,
         textDecoration: "none",
         "&:hover": {
           textDecoration: "underline",
@@ -197,7 +209,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const NewLoginPage = () => {
-  const classes = useStyles();
+  useActiveTheme();
+  useCompanyLogo();
+  const [colors] = useRecoilState(colorsAtom);
+  const companyLogo = useRecoilValue(companyLogoAtom);
+  
+
+  const classes = useStyles(colors)();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -326,11 +344,16 @@ const NewLoginPage = () => {
     <main className={classes.root}>
       <div className={classes.container}>
         <div className={classes.topRow}>
-          <SampleLogo className={classes.sampleLogo} />
+        <Base64Image
+            base64String={companyLogo}
+            altText={"Company Logo"}
+            css={classes.sampleLogo}
+          />
+          {/* <SampleLogo className={} /> */}
           <div className={classes.topRowRight}>
             <span>Don't have an account?</span>
             <button
-              onClick={() => navigate("/test-register")}
+              onClick={() => navigate("/register")}
               className={classes.signInButton}
             >
               Register
@@ -381,7 +404,9 @@ const NewLoginPage = () => {
             </button>
             <div className={classes.mobileRegister}>
               <span>Don't have an account?</span>
-              <a href="#" onClick={() => navigate("/test-register")}>Register</a>
+              <a href="#" onClick={() => navigate("/register")}>
+                Register
+              </a>
             </div>
           </div>
           <Snackbar

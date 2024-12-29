@@ -39,14 +39,27 @@ import usePersistedState from "../common/util/usePersistedState";
 import { devicesActions } from "../store";
 import { useRecoilState, useRecoilValue } from "recoil";
 import StatusCard from "../common/components/StatusCard";
+import { companyLogoAtom } from "../recoil/atoms/companyLogoAtom";
+import Base64Image from "../common/components/Base64Image";
+
 import { colorsAtom } from "../recoil/atoms/colorsAtom";
 import { useDeviceReadonly } from "../common/util/permissions";
 import DeviceRow from "./DeviceRow";
 import useStyles from "../common/theme/useMainPageStyling";
+import {
+  useAdministrator,
+  useManager,
+  useRestriction,
+} from "../common/util/permissions";
+import { nativePostMessage } from "../common/components/NativeInterface";
 
 const NewMainPage = () => {
   const theme = useTheme();
   const t = useTranslation();
+  const companyLogo = useRecoilValue(companyLogoAtom);
+
+  const admin = useAdministrator();
+  const manager = useManager();
 
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [colors, setColors] = useRecoilState(colorsAtom);
@@ -101,6 +114,35 @@ const NewMainPage = () => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    setAnchorEl(null);
+
+    const notificationToken = window.localStorage.getItem('notificationToken');
+    if (notificationToken && !user.readonly) {
+      window.localStorage.removeItem('notificationToken');
+      const tokens = user.attributes.notificationTokens?.split(',') || [];
+      if (tokens.includes(notificationToken)) {
+        const updatedUser = {
+          ...user,
+          attributes: {
+            ...user.attributes,
+            notificationTokens: tokens.length > 1 ? tokens.filter((it) => it !== notificationToken).join(',') : undefined,
+          },
+        };
+        await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedUser),
+        });
+      }
+    }
+
+    await fetch('/api/session', { method: 'DELETE' });
+    nativePostMessage('logout');
+    navigate('/login');
+    dispatch(sessionActions.updateUser(null));
   };
 
   const toggleSidebar = () => {
@@ -220,245 +262,255 @@ const NewMainPage = () => {
   );
   return (
     <div className={classes.mainContainer}>
-      <nav className={classes.navbar}>
-        <div className={classes.container}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            {isMediumScreen && (
-              <IconButton
-                className={`${classes.menuButton} ${classes.addButton}`}
-                onClick={toggleSidebar}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-            <CompanyLogo className={classes.logo} />
-          </div>
-          <div className={classes.rightSection}>
-            {isMediumScreen ? (
-              <IconButton className={classes.addButton} onClick={toggleSearch}>
-                <SearchIcon />
-              </IconButton>
-            ) : (
-              <>
-                <div ref={toolbarRef} className={classes.searchContainer}>
-                  <input
-                    type="text"
-                    placeholder="Search for vehicles"
-                    className={classes.searchInput}
-                    ref={inputRef}
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
-                    onBlur={() => setDevicesAnchorEl(null)}
-                  />
-                  <IconButton
-                    size="small"
-                    edge="end"
-                    onClick={() => setFilterAnchorEl(inputRef.current)}
-                  >
-                    <Badge
-                      color="info"
-                      variant="dot"
-                      invisible={
-                        !filter.statuses.length && !filter.groups.length
-                      }
-                    >
-                      <TuneIcon
-                        className={classes.configIcon}
-                        fontSize="small"
-                      />
-                    </Badge>
-                  </IconButton>
-                  <Popover
-                    open={!!devicesAnchorEl}
-                    anchorEl={devicesAnchorEl}
-                    onClose={() => setDevicesAnchorEl(null)}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: Number(theme.spacing(2).slice(0, -2)),
-                    }}
-                    marginThreshold={0}
-                    slotProps={{
-                      paper: {
-                        style: {
-                          width: `calc(${
-                            toolbarRef.current?.clientWidth
-                          }px - ${theme.spacing(4)})`,
-                        },
-                      },
-                    }}
-                    elevation={1}
-                    disableAutoFocus
-                    disableEnforceFocus
-                  >
-                    {filteredDevices.slice(0, 3).map((_, index) => (
-                      <DeviceRow
-                        key={filteredDevices[index].id}
-                        data={filteredDevices}
-                        index={index}
-                      />
-                    ))}
-                    {filteredDevices.length > 3 && (
-                      <ListItemButton
-                        alignItems="center"
-                        onClick={() => setDevicesOpen(true)}
-                      >
-                        <ListItemText
-                          primary={t("notificationAlways")}
-                          style={{ textAlign: "center" }}
-                        />
-                      </ListItemButton>
-                    )}
-                  </Popover>
-                  <Popover
-                    open={!!filterAnchorEl}
-                    anchorEl={filterAnchorEl}
-                    onClose={() => setFilterAnchorEl(null)}
-                    anchorOrigin={{
-                      vertical: "bottom",
-                      horizontal: "left",
-                    }}
-                  >
-                    <div className={classes.filterPanel}>
-                      <FormControl>
-                        <InputLabel>{t("deviceStatus")}</InputLabel>
-                        <Select
-                          label={t("deviceStatus")}
-                          value={filter.statuses}
-                          onChange={(e) =>
-                            setFilter({ ...filter, statuses: e.target.value })
-                          }
-                          multiple
-                        >
-                          <MenuItem value="online">{`${t(
-                            "deviceStatusOnline"
-                          )} (${deviceStatusCount("online")})`}</MenuItem>
-                          <MenuItem value="offline">{`${t(
-                            "deviceStatusOffline"
-                          )} (${deviceStatusCount("offline")})`}</MenuItem>
-                          <MenuItem value="unknown">{`${t(
-                            "deviceStatusUnknown"
-                          )} (${deviceStatusCount("unknown")})`}</MenuItem>
-                        </Select>
-                      </FormControl>
-                      <FormControl>
-                        <InputLabel>{t("settingsGroups")}</InputLabel>
-                        <Select
-                          label={t("settingsGroups")}
-                          value={filter.groups}
-                          onChange={(e) =>
-                            setFilter({ ...filter, groups: e.target.value })
-                          }
-                          multiple
-                        >
-                          {Object.values(groups)
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map((group) => (
-                              <MenuItem key={group.id} value={group.id}>
-                                {group.name}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </FormControl>
-                      <FormControl>
-                        <InputLabel>{t("sharedSortBy")}</InputLabel>
-                        <Select
-                          label={t("sharedSortBy")}
-                          value={filterSort}
-                          onChange={(e) => setFilterSort(e.target.value)}
-                          displayEmpty
-                        >
-                          <MenuItem value="">{"\u00a0"}</MenuItem>
-                          <MenuItem value="name">{t("sharedName")}</MenuItem>
-                          <MenuItem value="lastUpdate">
-                            {t("deviceLastUpdate")}
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={filterMap}
-                              onChange={(e) => setFilterMap(e.target.checked)}
-                            />
-                          }
-                          label={t("sharedFilterMap")}
-                        />
-                      </FormGroup>
-                    </div>
-                  </Popover>
-                </div>
-              </>
-            )}
+      <nav className={classes.navbar} style={{ display: 'flex', alignItems: 'center !important', justifyContent: 'space-between' }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {isMediumScreen && (
             <IconButton
-              onClick={() => navigate("/settings/device")}
-              disabled={deviceReadonly}
-              className={classes.addButton}
+              className={`${classes.menuButton} ${classes.addButton}`}
+              onClick={toggleSidebar}
             >
-              <Tooltip
-                open={!deviceReadonly && Object.keys(devices).length === 0}
-                title={t("deviceRegisterFirst")}
-                arrow
-              >
-                <AddIcon />
-              </Tooltip>
+              <MenuIcon />
             </IconButton>
-            <div className={classes.accountSection} onClick={handleMenuOpen}>
-              <Avatar
-                sx={{
-                  width: isMediumScreen ? 28 : 32,
-                  height: isMediumScreen ? 28 : 32,
-                  bgcolor: colors.primary,
-                }}
-              >
-                U
-              </Avatar>
-              <ArrowDropDownIcon />
-            </div>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              PaperProps={{
-                elevation: 3,
-                sx: {
-                  mt: 1.5,
-                  borderRadius: "8px",
-                  "& .MuiList-root": {
-                    padding: "8px 0",
-                  },
-                },
+          )}
+          <Base64Image
+            base64String={companyLogo}
+            altText={"Company Logo"}
+            css={classes.logo}
+          />
+        </div>
+        <div className={classes.rightSection} style={{ display: 'flex', alignItems: 'center !important', gap: '10px' }}>
+          {isMediumScreen ? (
+            <IconButton className={classes.addButton} onClick={toggleSearch}>
+              <SearchIcon />
+            </IconButton>
+          ) : (
+            <>
+              <div ref={toolbarRef} className={classes.searchContainer} style={{ display: 'flex', alignItems: 'center !important' }}>
+                <input
+                  type="text"
+                  placeholder="Search for vehicles"
+                  className={classes.searchInput}
+                  ref={inputRef}
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onFocus={() => setDevicesAnchorEl(toolbarRef.current)}
+                  onBlur={() => setDevicesAnchorEl(null)}
+                />
+                <IconButton
+                  size="small"
+                  edge="end"
+                  onClick={() => setFilterAnchorEl(inputRef.current)}
+                >
+                  <Badge
+                    color="info"
+                    variant="dot"
+                    invisible={
+                      !filter.statuses.length && !filter.groups.length
+                    }
+                  >
+                    <TuneIcon
+                      className={classes.configIcon}
+                      fontSize="small"
+                    />
+                  </Badge>
+                </IconButton>
+                <Popover
+                  open={!!devicesAnchorEl}
+                  anchorEl={devicesAnchorEl}
+                  onClose={() => setDevicesAnchorEl(null)}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: Number(theme.spacing(2).slice(0, -2)),
+                  }}
+                  marginThreshold={0}
+                  slotProps={{
+                    paper: {
+                      style: {
+                        width: `calc(${
+                          toolbarRef.current?.clientWidth
+                        }px - ${theme.spacing(4)})`,
+                      },
+                    },
+                  }}
+                  elevation={1}
+                  disableAutoFocus
+                  disableEnforceFocus
+                >
+                  {filteredDevices.slice(0, 3).map((_, index) => (
+                    <DeviceRow
+                      key={filteredDevices[index].id}
+                      data={filteredDevices}
+                      index={index}
+                    />
+                  ))}
+                  {filteredDevices.length > 3 && (
+                    <ListItemButton
+                      alignItems="center"
+                      onClick={() => setDevicesOpen(true)}
+                    >
+                      <ListItemText
+                        primary={t("notificationAlways")}
+                        style={{ textAlign: "center" }}
+                      />
+                    </ListItemButton>
+                  )}
+                </Popover>
+                <Popover
+                  open={!!filterAnchorEl}
+                  anchorEl={filterAnchorEl}
+                  onClose={() => setFilterAnchorEl(null)}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                  }}
+                >
+                  <div className={classes.filterPanel}>
+                    <FormControl>
+                      <InputLabel>{t("deviceStatus")}</InputLabel>
+                      <Select
+                        label={t("deviceStatus")}
+                        value={filter.statuses}
+                        onChange={(e) =>
+                          setFilter({ ...filter, statuses: e.target.value })
+                        }
+                        multiple
+                      >
+                        <MenuItem value="online">{`${t(
+                          "deviceStatusOnline"
+                        )} (${deviceStatusCount("online")})`}</MenuItem>
+                        <MenuItem value="offline">{`${t(
+                          "deviceStatusOffline"
+                        )} (${deviceStatusCount("offline")})`}</MenuItem>
+                        <MenuItem value="unknown">{`${t(
+                          "deviceStatusUnknown"
+                        )} (${deviceStatusCount("unknown")})`}</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <InputLabel>{t("settingsGroups")}</InputLabel>
+                      <Select
+                        label={t("settingsGroups")}
+                        value={filter.groups}
+                        onChange={(e) =>
+                          setFilter({ ...filter, groups: e.target.value })
+                        }
+                        multiple
+                      >
+                        {Object.values(groups)
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((group) => (
+                            <MenuItem key={group.id} value={group.id}>
+                              {group.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <InputLabel>{t("sharedSortBy")}</InputLabel>
+                      <Select
+                        label={t("sharedSortBy")}
+                        value={filterSort}
+                        onChange={(e) => setFilterSort(e.target.value)}
+                        displayEmpty
+                      >
+                        <MenuItem value="">{"\u00a0"}</MenuItem>
+                        <MenuItem value="name">{t("sharedName")}</MenuItem>
+                        <MenuItem value="lastUpdate">
+                          {t("deviceLastUpdate")}
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                    <FormGroup>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={filterMap}
+                            onChange={(e) => setFilterMap(e.target.checked)}
+                          />
+                        }
+                        label={t("sharedFilterMap")}
+                      />
+                    </FormGroup>
+                  </div>
+                </Popover>
+              </div>
+            </>
+          )}
+          <IconButton
+            onClick={() => navigate("/settings/device")}
+            disabled={deviceReadonly}
+            className={classes.addButton}
+          >
+            <Tooltip
+              open={!deviceReadonly && Object.keys(devices).length === 0}
+              title={t("deviceRegisterFirst")}
+              arrow
+            >
+              <AddIcon />
+            </Tooltip>
+          </IconButton>
+          <div className={classes.accountSection} onClick={handleMenuOpen}>
+            <Avatar
+              sx={{
+                width: isMediumScreen ? 28 : 32,
+                height: isMediumScreen ? 28 : 32,
+                bgcolor: colors.primary,
               }}
             >
+              U
+            </Avatar>
+            <ArrowDropDownIcon />
+          </div>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+            PaperProps={{
+              elevation: 3,
+              sx: {
+                mt: 1.5,
+                borderRadius: "8px",
+                "& .MuiList-root": {
+                  padding: "8px 0",
+                },
+              },
+            }}
+          >
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                navigate(`/settings/user/${user.id}`);
+              }}
+              className={classes.menuItem}
+            >
+              Account
+            </MenuItem>{" "}
+            {admin && (
               <MenuItem
                 onClick={() => {
                   handleMenuClose();
-                  navigate(`/settings/user/${user.id}`);
+                  navigate(`/branding`);
                 }}
                 className={classes.menuItem}
               >
-                Account
-              </MenuItem>{" "}
-              <MenuItem onClick={handleMenuClose} className={classes.menuItem}>
                 Branding Options
               </MenuItem>
-              <MenuItem
-                onClick={handleMenuClose}
-                className={`${classes.menuItem} ${classes.logoutMenuItem}`}
-              >
-                Log out
-              </MenuItem>
-            </Menu>
-          </div>
+            )}
+            <MenuItem
+              onClick={handleLogout}
+              className={`${classes.menuItem} ${classes.logoutMenuItem}`}
+            >
+              Log out
+            </MenuItem>
+          </Menu>
         </div>
       </nav>
 

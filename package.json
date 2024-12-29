@@ -53,6 +53,7 @@
   },
   "scripts": {
     "start": "vite",
+    "dev" : "vite --host",
     "build": "vite build",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal public/logo.svg",
     "lint": "eslint .",

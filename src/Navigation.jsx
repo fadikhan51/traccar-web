@@ -33,7 +33,10 @@ import GroupPage from "./settings/GroupPage";
 import PositionPage from "./other/PositionPage";
 import NetworkPage from "./other/NetworkPage";
 import EventReportPage from "./reports/EventReportPage";
+
 import ReplayPage from "./other/ReplayPage";
+import NewReplayPage from "./other/newReplayPage";
+
 import TripReportPage from "./reports/TripReportPage";
 import StopReportPage from "./reports/StopReportPage";
 import SummaryReportPage from "./reports/SummaryReportPage";
@@ -93,10 +96,23 @@ import SharePage from "./settings/SharePage";
 import AnnouncementPage from "./settings/AnnouncementPage";
 import NewAnnouncementPage from "./settings/NewAnnouncementPage";
 
+// Reports Section
+import NewCombinedReportPage from "./reports/newCombinedReportPage";
+import NewChartReportPage from "./reports/newChartReportPage";
+import NewEventReportPage from "./reports/newEventReportPage";
+import NewRouteReportPage from "./reports/newRouteReportPage";
+import NewStopReportPage from "./reports/newStopReportPage";
+import NewSummaryReportPage from "./reports/newSummaryReportPage";
+import NewTripReportPage from "./reports/newTripReportPage";
+import NewScheduledPage from "./reports/newScheduledPage";
+import NewLogsPage from "./reports/newLogsPage";
+import NewStatisticsPage from "./reports/newStatisticsPage";
+
 import EmulatorPage from "./other/EmulatorPage";
 import Loader from "./common/components/Loader";
 
 import BrandingOptions from "./main/BrandingOptions";
+import { RecoilRoot } from "recoil";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -136,30 +152,34 @@ const Navigation = () => {
     return <Loader />;
   }
   return (
+    <RecoilRoot>
     <Routes>
-      <Route path="/test-login" element={<NewLoginPage />} />
-      <Route path="/test-register" element={<NewRegisterPage />} />
-      <Route path="/test-reset-password" element={<NewResetPasswordPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/login" element={<NewLoginPage />} />
+      <Route path="/register" element={<NewRegisterPage />} />
+      <Route path="/reset-password" element={<NewResetPasswordPage />} />
+      {/* <Route path="/login" element={<LoginPage />} /> */}
+      {/* <Route path="/register" element={<RegisterPage />} /> */}
+      {/* <Route path="/reset-password" element={<ResetPasswordPage />} /> */}
       <Route path="/change-server" element={<ChangeServerPage />} />
       <Route path="/" element={<App />}>
-        <Route index element={<MainPage />} />
-        <Route path="/test-main" element={<NewMainPage />} />
+        <Route index element={<NewMainPage />} />
+        {/* <Route index path="/test-main" element={<NewMainPage />} /> */}
         <Route path="/branding" element={<BrandingOptions />} />
 
         <Route path="position/:id" element={<PositionPage />} />
         <Route path="network/:positionId" element={<NetworkPage />} />
         <Route path="event/:id" element={<EventPage />} />
-        <Route path="replay" element={<ReplayPage />} />
+
+        {/* <Route path="replay" element={<ReplayPage />} /> */}
+        <Route path="replay" element={<NewReplayPage />} />
+
         <Route path="geofences" element={<GeofencesPage />} />
         <Route path="emulator" element={<EmulatorPage />} />
 
         <Route path="settings">
           <Route path="accumulators/:deviceId" element={<AccumulatorsPage />} />
-          <Route path="announcement" element={<AnnouncementPage />} />
-          <Route path="newannouncement" element={<NewAnnouncementPage />} />
+          {/* <Route path="announcement" element={<AnnouncementPage />} /> */}
+          <Route path="announcement" element={<NewAnnouncementPage />} />
 
           {/* <Route path="newcalendars" element={<NewCalendarsPage />} /> */}
           <Route path="calendars" element={<NewCalendarsPage />} />
@@ -250,19 +270,39 @@ const Navigation = () => {
         </Route>
 
         <Route path="reports">
-          <Route path="combined" element={<CombinedReportPage />} />
-          <Route path="chart" element={<ChartReportPage />} />
-          <Route path="event" element={<EventReportPage />} />
-          <Route path="route" element={<RouteReportPage />} />
-          <Route path="stop" element={<StopReportPage />} />
-          <Route path="summary" element={<SummaryReportPage />} />
-          <Route path="trip" element={<TripReportPage />} />
-          <Route path="scheduled" element={<ScheduledPage />} />
-          <Route path="statistics" element={<StatisticsPage />} />
-          <Route path="logs" element={<LogsPage />} />
+          {/* <Route path="combined" element={<CombinedReportPage />} /> */}
+          <Route path="combined" element={<NewCombinedReportPage />} />
+
+          {/* <Route path="chart" element={<ChartReportPage />} /> */}
+          <Route path="chart" element={<NewChartReportPage />} />
+
+          {/* <Route path="event" element={<EventReportPage />} /> */}
+          <Route path="event" element={<NewEventReportPage />} />
+
+          {/* <Route path="route" element={<RouteReportPage />} /> */}
+          <Route path="route" element={<NewRouteReportPage />} />
+
+          {/* <Route path="stop" element={<StopReportPage />} /> */}
+          <Route path="stop" element={<NewStopReportPage />} />
+
+          {/* <Route path="summary" element={<SummaryReportPage />} /> */}
+          <Route path="summary" element={<NewSummaryReportPage />} />
+
+          {/* <Route path="trip" element={<TripReportPage />} /> */}
+          <Route path="trip" element={<NewTripReportPage />} />
+
+          {/* <Route path="scheduled" element={<ScheduledPage />} /> */}
+          <Route path="scheduled" element={<NewScheduledPage />} />
+
+          {/* <Route path="statistics" element={<StatisticsPage />} /> */}
+          <Route path="statistics" element={<NewStatisticsPage />} />
+
+          {/* <Route path="logs" element={<LogsPage />} /> */}
+          <Route path="logs" element={<NewLogsPage />} />
         </Route>
       </Route>
     </Routes>
+    </RecoilRoot>
   );
 };
 

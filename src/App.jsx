@@ -11,6 +11,7 @@ import { sessionActions } from './store';
 import UpdateController from './UpdateController';
 import TermsDialog from './common/components/TermsDialog';
 import Loader from './common/components/Loader';
+import { colorsAtom } from './recoil/atoms/colorsAtom';
 import { collection, getDocs } from 'firebase/firestore'
 import {
   RecoilRoot,
@@ -19,12 +20,14 @@ import {
   useRecoilState,
   useRecoilValue,
 } from 'recoil';
+import useActiveTheme from './common/theme/useActiveTheme';
+import useCompanyLogo from './common/theme/useCompanyLogo';
 
-const useStyles = makeStyles(() => ({
+const useStyles = (colors) => makeStyles(() => ({
   page: {
     flexGrow: 1,
     overflow: 'auto',
-    backgroundColor: "white"
+    backgroundColor: `${colors.accent}`
   },
   menu: {
     zIndex: 4,
@@ -32,7 +35,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const App = () => {
-  const classes = useStyles();
+  const colors = useRecoilValue(colorsAtom);
+  useActiveTheme();
+  useCompanyLogo();
+  console.log(useRecoilValue(colorsAtom));
+  const classes = useStyles(colors)();
   const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -78,7 +85,7 @@ const App = () => {
   }
   return (
     <>
-    <RecoilRoot>
+    
       <SocketController />
       <CachingController />
       <UpdateController />
@@ -90,7 +97,7 @@ const App = () => {
           <BottomMenu />
         </div>
       )} */}
-      </RecoilRoot>
+      
     </>
   );
 };

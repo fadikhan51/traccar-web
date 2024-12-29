@@ -14,5 +14,6 @@ export const colorsAtom = atom({
     gray: '#E8E8E8',
     darkgray: '#4A4A4A',
     red: '#FF4444',
+    active: true,
   },
 });

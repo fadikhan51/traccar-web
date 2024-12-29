@@ -5,7 +5,6 @@ import {
   List,
   ListItem,
 } from '@mui/material';
-import makeStyles from '@mui/styles/makeStyles';
 import { useTheme } from '@mui/material/styles';
 import Drawer from '@mui/material/Drawer';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -20,44 +19,15 @@ import MapPositions from '../map/MapPositions';
 import { useCatch } from '../reactHelper';
 import MapScale from '../map/MapScale';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  content: {
-    flexGrow: 1,
-    overflow: 'hidden',
-    display: 'flex',
-    flexDirection: 'row',
-    [theme.breakpoints.down('sm')]: {
-      flexDirection: 'column-reverse',
-    },
-  },
-  drawer: {
-    zIndex: 1,
-  },
-  drawerPaper: {
-    position: 'relative',
-    [theme.breakpoints.up('sm')]: {
-      width: theme.dimensions.drawerWidthDesktop,
-    },
-    [theme.breakpoints.down('sm')]: {
-      height: theme.dimensions.drawerHeightPhone,
-    },
-  },
-  mapContainer: {
-    flexGrow: 1,
-  },
-  title: {
-    flexGrow: 1,
-  },
-}));
+import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import useStyles from '../common/theme/useGlobalStyles';
 
 const EmulatorPage = () => {
   const theme = useTheme();
-  const classes = useStyles();
+  const [colors, setColors] = useRecoilState(colorsAtom);
+  const classes = useStyles(colors)();
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const t = useTranslation();
@@ -97,34 +67,47 @@ const EmulatorPage = () => {
   });
 
   return (
-    <div className={classes.root}>
-      <div className={classes.content}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ 
+        flexGrow: 1, 
+        overflow: 'hidden', 
+        display: 'flex', 
+        flexDirection: isPhone ? 'column-reverse' : 'row' 
+      }}>
         <Drawer
-          className={classes.drawer}
+          style={{ zIndex: 1 }}
           anchor={isPhone ? 'bottom' : 'left'}
           variant="permanent"
-          classes={{ paper: classes.drawerPaper }}
+          PaperProps={{
+            style: {
+              position: 'relative',
+              width: isPhone ? 'auto' : theme.dimensions.drawerWidthDesktop,
+              height: isPhone ? theme.dimensions.drawerHeightPhone : 'auto'
+            }
+          }}
         >
-          <Toolbar>
-            <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" className={classes.title}>{t('sharedEmulator')}</Typography>
-          </Toolbar>
-          <Divider />
-          <List>
-            <ListItem>
-              <SelectField
-                label={t('reportDevice')}
-                data={Object.values(devices).sort((a, b) => a.name.localeCompare(b.name))}
-                value={deviceId}
-                onChange={(e) => dispatch(devicesActions.selectId(e.target.value))}
-                fullWidth
-              />
-            </ListItem>
-          </List>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <Toolbar>
+              <IconButton edge="start" sx={{ mr: 2 }} onClick={() => navigate(-1)}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" style={{ flexGrow: 1 }}>{t('sharedEmulator')}</Typography>
+            </Toolbar>
+            <Divider />
+            <List style={{ flexGrow: 1 }}>
+              <ListItem>
+                <SelectField
+                  label={t('reportDevice')}
+                  data={Object.values(devices).sort((a, b) => a.name.localeCompare(b.name))}
+                  value={deviceId}
+                  onChange={(e) => dispatch(devicesActions.selectId(e.target.value))}
+                  fullWidth
+                />
+              </ListItem>
+            </List>
+          </div>
         </Drawer>
-        <div className={classes.mapContainer}>
+        <div style={{ flexGrow: 1 }}>
           <MapView>
             <MapPositions
               positions={Object.values(positions)}

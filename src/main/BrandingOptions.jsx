@@ -9,14 +9,23 @@ import {
   Grid,
   Box,
   Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/material/styles";
 import useStyles from "../common/theme/useGlobalStyles";
 import { colorsAtom } from "/src/recoil/atoms/colorsAtom";
 import { useRecoilState, useSetRecoilState, useRecoilValue } from "recoil";
+import { collection, query, where, getDocs, setDoc, doc, deleteDoc, updateDoc, addDoc } from "firebase/firestore";
+import db from "/src/firebase_config/firebase";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -291,34 +300,232 @@ const colors = [
     darkgray: "#4A4A4A",
     red: "#FF4444",
   }
-];  
+]; 
 
 const BrandingOptions = () => {
   const navigate = useNavigate();
-
   const [doc_colors, setDoc_Colors] = useRecoilState(colorsAtom);
-  const setGlobalColor =  useSetRecoilState(colorsAtom);
+  const setGlobalColor = useSetRecoilState(colorsAtom);
   const classes = useStyles(doc_colors)();
-  
   const [selectedColor, setSelectedColor] = useState(null);
   const styles = useStyles();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [newTheme, setNewTheme] = useState({
+    primary: "#FFFFFF",
+    secondary: "#FFFFFF",
+    tertiary: "#FFFFFF",
+    accent: "#FFFFFF",
+    highlight: "#FFFFFF",
+    muted: "#FFFFFF",
+    shadow: "#FFFFFF",
+    white: "#FFFFFF",
+    gray: "#E8E8E8",
+    darkgray: "#4A4A4A",
+    red: "#FF4444",
+  });
 
-  useEffect(() => {
-    if (selectedColor) {
-      setDoc_Colors(selectedColor);
-      setGlobalColor(selectedColor);
-    //   window.location.reload();
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const [error, setError] = useState("");
+
+  const handleImageUpload = async (event) => {
+    const VALID_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
+    const CHUNK_SIZE = 800000; // 0.8MB in bytes
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
+    try {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!VALID_FILE_TYPES.includes(file.type)) {
+        setError("Invalid file type. Please upload a PNG, JPG, or JPEG.");
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        setError("File size exceeds 5MB. Please select a smaller file.");
+        return;
+      }
+
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      // Simulate progress for base64 conversion
+      setUploadProgress(30);
+      const base64String = await convertToBase64(file);
+      
+      setUploadProgress(60);
+
+      try {
+        const settingsRef = collection(db, "settings");
+        
+        // Delete all existing documents in settings collection
+        const existingDocs = await getDocs(settingsRef);
+        const deletePromises = existingDocs.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+
+        // Split base64String into chunks
+        const chunks = [];
+        for (let i = 0; i < base64String.length; i += CHUNK_SIZE) {
+          chunks.push(base64String.slice(i, i + CHUNK_SIZE));
+        }
+
+        // Upload chunks
+        const uploadPromises = chunks.map((chunk, index) => 
+          addDoc(settingsRef, {
+            logoChunk: chunk,
+            chunkNumber: index,
+            totalChunks: chunks.length,
+            timestamp: new Date()
+          })
+        );
+
+        await Promise.all(uploadPromises);
+
+        setError("");
+        alert("Logo uploaded successfully!");
+      } catch (err) {
+        console.error("Error uploading logo:", err);
+        setError("Failed to upload the logo. Please try again.");
+      }
+
+      setUploadProgress(100);
+      
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setIsUploading(false);
+      setUploadProgress(0);
     }
-  }, [selectedColor, setDoc_Colors]);
+  };
 
+  
+  const isAllColorsFilled = () => {
+    return newTheme.primary && newTheme.secondary && newTheme.tertiary && 
+           newTheme.accent && newTheme.highlight && newTheme.muted && newTheme.shadow;
+  };
+
+  const saveRecommendedColor = async () => {
+    try {
+      const themesRef = collection(db, "themes");
+      
+      // Check if the color exists
+      const q = query(themesRef, where("primary", "==", selectedColor.primary));
+      const querySnapshot = await getDocs(q);
+      
+      // Find currently active theme
+      const activeThemeQuery = query(themesRef, where("active", "==", true));
+      const activeThemeSnapshot = await getDocs(activeThemeQuery);
+      
+      if (!querySnapshot.empty) {
+        // Color exists, update its active status
+        const themeDoc = querySnapshot.docs[0];
+        await updateDoc(themeDoc.ref, {
+          active: true
+        });
+        
+        // Update previously active theme
+        activeThemeSnapshot.forEach(async (doc) => {
+          if (doc.id !== themeDoc.id) {
+            await updateDoc(doc.ref, {
+              active: false
+            });
+          }
+        });
+      } else {
+        // Color doesn't exist, add new theme
+        await addDoc(themesRef, {
+          ...selectedColor,
+          active: true
+        });
+        
+        // Update previously active theme
+        activeThemeSnapshot.forEach(async (doc) => {
+          await updateDoc(doc.ref, {
+            active: false
+          });
+        });
+      }
+    } catch (error) {
+      console.error("Error saving theme:", error);
+    }
+  };
   const handleColorSelect = (color) => {
     setSelectedColor(color);
     console.log(color);
   };
 
+  const handleDialogOpen = () => {
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
+
+  const handleSaveTheme = async () => {
+    try {
+      const themesRef = collection(db, "themes");
+      
+      // Check if the theme exists
+      const q = query(themesRef, where("primary", "==", newTheme.primary));
+      const querySnapshot = await getDocs(q);
+      
+      // Find currently active theme
+      const activeThemeQuery = query(themesRef, where("active", "==", true));
+      const activeThemeSnapshot = await getDocs(activeThemeQuery);
+      
+      if (!querySnapshot.empty) {
+        // Theme exists, update its active status
+        const themeDoc = querySnapshot.docs[0];
+        await updateDoc(themeDoc.ref, {
+          active: true
+        });
+        
+        // Update previously active theme
+        activeThemeSnapshot.forEach(async (doc) => {
+          if (doc.id !== themeDoc.id) {
+            await updateDoc(doc.ref, {
+              active: false
+            });
+          }
+        });
+      } else {
+        // Theme doesn't exist, add new theme
+        await addDoc(themesRef, {
+          ...newTheme,
+          active: true
+        });
+        
+        // Update previously active theme
+        activeThemeSnapshot.forEach(async (doc) => {
+          await updateDoc(doc.ref, {
+            active: false
+          });
+        });
+      }
+      handleDialogClose();
+    } catch (error) {
+      console.error("Error saving theme:", error);
+    }
+  };
+
   return (
-    <Box sx={{ height: "100%", backgroundColor: `${doc_colors.accent} !important` }}>
-      <AppBar position="static" >
+    <Box sx={{ height: "100%"}}>
+      <AppBar position="static">
         <Toolbar>
           <IconButton
             edge="start"
@@ -343,32 +550,55 @@ const BrandingOptions = () => {
                   <Typography variant="h6" gutterBottom>
                     Theme Colors
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, color: 'gray' }}>
-                    Choose a primary color to define your brand's visual identity. This color will be used across your application to maintain consistency.
-                  </Typography>
-                  <Box sx={{ backgroundColor: '#f5f5f5', p: 2, borderRadius: 1 }}>
-                    <Grid container spacing={1}>
-                      {colors.map((color) => (
-                        <Grid item key={color.primary}>
-                          <Box
-                            onClick={() => handleColorSelect(color)}
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              backgroundColor: color.primary,
-                              cursor: "pointer",
-                              border: selectedColor === color ? "3px solid darkgray" : "none",
-                              borderRadius: 1,
-                              transition: 'all 0.3s ease',
-                              "&:hover": {
-                                opacity: 0.8,
-                                transform: 'scale(1.1)',
-                              },
-                            }}
-                          />
+                  <Box sx={{ display: 'flex', flexDirection: 'row', gap: 3, alignItems: 'center' }}>
+                    <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<AddIcon />}
+                        onClick={handleDialogOpen}
+                        fullWidth
+                      >
+                        Create theme
+                      </Button>
+                    </Box>
+                    <Box sx={{ flex: 2 }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Recommended Themes
+                      </Typography>
+                      <Box sx={{ backgroundColor: '#f5f5f5', p: 2, borderRadius: 1 }}>
+                        <Grid container spacing={1}>
+                          {colors.map((color) => (
+                            <Grid item key={color.primary}>
+                              <Box
+                                onClick={() => handleColorSelect(color)}
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  backgroundColor: color.primary,
+                                  cursor: "pointer",
+                                  border: selectedColor === color ? "3px solid darkgray" : "none",
+                                  borderRadius: 1,
+                                  transition: 'all 0.3s ease',
+                                  "&:hover": {
+                                    opacity: 0.8,
+                                    transform: 'scale(1.1)',
+                                  },
+                                }}
+                              />
+                            </Grid>
+                          ))}
                         </Grid>
-                      ))}
-                    </Grid>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                    <Button 
+                      variant="contained" 
+                      disabled={!selectedColor}
+                      onClick={saveRecommendedColor}
+                    >
+                      Save Color
+                    </Button>
                   </Box>
                 </CardContent>
               </Card>
@@ -380,21 +610,154 @@ const BrandingOptions = () => {
                   <Typography variant="h6" gutterBottom>
                     Upload Logo
                   </Typography>
-                  <Button
-                    component="label"
-                    variant="contained"
-                    startIcon={<CloudUploadIcon />}
-                    sx={{ mt: 2 }}
-                  >
-                    Upload Image
-                    <VisuallyHiddenInput type="file" accept="image/*" />
-                  </Button>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Button
+                      component="label"
+                      variant="contained"
+                      startIcon={<CloudUploadIcon />}
+                      sx={{ mt: 2 }}
+                      disabled={isUploading}
+                    >
+                      Upload Image
+                      <VisuallyHiddenInput 
+                        type="file" 
+                        accept="image/png, image/jpg, image/jpeg" 
+                        onChange={handleImageUpload}
+                      />
+                    </Button>
+                    {isUploading && (
+                      <Box sx={{ position: 'relative', display: 'inline-flex', mt: 2 }}>
+                        <CircularProgress variant="determinate" value={uploadProgress} />
+                        <Box
+                          sx={{
+                            top: 0,
+                            left: 0,
+                            bottom: 0,
+                            right: 0,
+                            position: 'absolute',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Typography variant="caption" component="div" color="text.secondary">
+                            {`${Math.round(uploadProgress)}%`}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
           </Grid>
         </Box>
       </Box>
+    
+      <Dialog open={openDialog} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Create Custom Theme</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Primary Color"
+                value={newTheme.primary}
+                onChange={(e) => setNewTheme({ ...newTheme, primary: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.primary}
+                onChange={(e) => setNewTheme({ ...newTheme, primary: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Secondary Color"
+                value={newTheme.secondary}
+                onChange={(e) => setNewTheme({ ...newTheme, secondary: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.secondary}
+                onChange={(e) => setNewTheme({ ...newTheme, secondary: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Tertiary Color"
+                value={newTheme.tertiary}
+                onChange={(e) => setNewTheme({ ...newTheme, tertiary: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.tertiary}
+                onChange={(e) => setNewTheme({ ...newTheme, tertiary: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Accent Color"
+                value={newTheme.accent}
+                onChange={(e) => setNewTheme({ ...newTheme, accent: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.accent}
+                onChange={(e) => setNewTheme({ ...newTheme, accent: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Highlight Color"
+                value={newTheme.highlight}
+                onChange={(e) => setNewTheme({ ...newTheme, highlight: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.highlight}
+                onChange={(e) => setNewTheme({ ...newTheme, highlight: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Muted Color"
+                value={newTheme.muted}
+                onChange={(e) => setNewTheme({ ...newTheme, muted: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.muted}
+                onChange={(e) => setNewTheme({ ...newTheme, muted: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <TextField
+                label="Shadow Color"
+                value={newTheme.shadow}
+                onChange={(e) => setNewTheme({ ...newTheme, shadow: e.target.value })}
+                sx={{ flex: 1 }}
+              />
+              <input
+                type="color"
+                value={newTheme.shadow}
+                onChange={(e) => setNewTheme({ ...newTheme, shadow: e.target.value })}
+              />
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button onClick={handleSaveTheme} variant="contained" disabled={!isAllColorsFilled()}>
+            Save Changes
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

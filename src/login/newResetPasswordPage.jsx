@@ -10,187 +10,199 @@ import { useNavigate } from "react-router-dom";
 import { snackBarDurationShortMs } from "../common/util/duration";
 import { useCatch, useEffectAsync } from "../reactHelper";
 import { sessionActions } from "../store";
+import { companyLogoAtom } from "../recoil/atoms/companyLogoAtom";
+import { colorsAtom } from "../recoil/atoms/colorsAtom";
+
+import Base64Image from "../common/components/Base64Image";
+import useActiveTheme from "../common/theme/useActiveTheme";
+import useCompanyLogo from "../common/theme/useCompanyLogo";
 import useQuery from "../common/util/useQuery";
+import { useRecoilState, useRecoilValue } from "recoil";
 
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: "100%",
-    height: "100%",
-    background: "linear-gradient(to right, #d8bfd8, #dda0dd)",
-    backdropFilter: "blur(15px)",
-    WebkitBackdropFilter: "blur(15px)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  container: {
-    width: "75%",
-    height: "75%",
-    backgroundColor: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0px 0px 10px rgba(0,0,0,0.1)",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    paddingBottom: "20px",
-    [theme.breakpoints.down("md")]: {
-      width: "90%",
-      height: "90%",
-      paddingBottom: "10px",
-    },
-  },
-  topRow: {
-    height: "15%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 20px",
-    [theme.breakpoints.down("md")]: {
-      display: "none",
-    },
-  },
-  topRowRight: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    color: "#666666",
-    fontSize: "12px",
-  },
-  signInButton: {
-    padding: "8px 16px",
-    backgroundColor: "#fff",
-    border: "1px solid #6a5acd",
-    color: "#6a5acd",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "12px",
-    "&:hover": {
-      backgroundColor: "#6a5acd",
-      color: "#fff",
-    },
-  },
-  sampleLogo: {
-    height: "30px",
-    width: "auto",
-  },
-  bottomRow: {
-    height: "85%",
-    display: "flex",
-    flexDirection: "row",
-    [theme.breakpoints.down("md")]: {
-      height: "100%",
-      flexDirection: "column",
-      padding: "20px",
-    },
-  },
-  logo: {
-    flex: 1,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    [theme.breakpoints.down("md")]: {
-      display: "none",
-    },
-  },
-  form: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "center",
-    gap: "15px",
-    padding: "0 40px",
-    overflow: "auto",
-    [theme.breakpoints.down("md")]: {
-      padding: "0",
+const useStyles = (colors) =>
+  makeStyles((theme) => ({
+    root: {
       width: "100%",
-      gap: "10px",
-      justifyContent: "flex-start",
-      paddingTop: "20px",
-    },
-  },
-  logoImage: {
-    maxWidth: "100%",
-    maxHeight: "100%",
-    objectFit: "contain",
-  },
-  heading: {
-    color: "#333",
-    fontSize: "20px",
-    fontWeight: "bold",
-    margin: 0,
-    alignSelf: "flex-start",
-    marginBottom: "-5px",
-    [theme.breakpoints.down("md")]: {
-      marginBottom: "0",
-      fontSize: "18px",
-    },
-  },
-  subheading: {
-    color: "#888",
-    fontSize: "14px",
-    margin: 0,
-    alignSelf: "flex-start",
-    [theme.breakpoints.down("md")]: {
-      fontSize: "13px",
-    },
-  },
-  inputLabel: {
-    color: "#333",
-    fontSize: "12px",
-    marginBottom: "3px",
-    alignSelf: "flex-start",
-  },
-  input: {
-    width: "100%",
-    padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "5px",
-    fontSize: "13px",
-    "&:focus": {
-      outline: "none",
-      borderColor: "#6a5acd",
-      boxShadow: "0 0 0 2px rgba(106, 90, 205, 0.2)",
-    },
-  },
-  loginButton: {
-    width: "100%",
-    padding: "10px",
-    backgroundColor: "#6a5acd",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "14px",
-    transition: "background-color 0.3s ease",
-    "&:hover": {
-      backgroundColor: "#5a4abd",
-    },
-  },
-  mobileRegister: {
-    display: "none",
-    [theme.breakpoints.down("md")]: {
+      height: "100%",
+      background: `linear-gradient(to bottom right, ${colors.highlight}, ${colors.accent}) !important`,
+      backdropFilter: "blur(15px)",
+      WebkitBackdropFilter: "blur(15px)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+    },
+    container: {
+      width: "75%",
+      height: "75%",
+      backgroundColor: colors.white,
+      borderRadius: "10px",
+      boxShadow: `0px 0px 5px ${colors.gray}`,
+      display: "flex",
+      flexDirection: "column",
+      overflow: "hidden",
+      paddingBottom: "20px",
+      [theme.breakpoints.down("md")]: {
+        width: "90%",
+        height: "90%",
+        paddingBottom: "10px",
+      },
+    },
+    topRow: {
+      height: "15%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0 20px",
+      [theme.breakpoints.down("md")]: {
+        display: "none",
+      },
+    },
+    topRowRight: {
+      display: "flex",
+      alignItems: "center",
       gap: "10px",
-      marginTop: "15px",
-      color: "#666666",
+      color: colors.darkgray,
       fontSize: "12px",
-      "& a": {
-        color: "#6a5acd",
-        textDecoration: "none",
-        "&:hover": {
-          textDecoration: "underline",
+    },
+    signInButton: {
+      padding: "8px 16px",
+      backgroundColor: colors.white,
+      border: `1px solid ${colors.primary}`,
+      color: colors.primary,
+      borderRadius: "5px",
+      cursor: "pointer",
+      fontSize: "12px",
+      "&:hover": {
+        backgroundColor: colors.primary,
+        color: colors.white,
+      },
+    },
+    sampleLogo: {
+      height: "30px",
+      width: "auto",
+    },
+    bottomRow: {
+      height: "85%",
+      display: "flex",
+      flexDirection: "row",
+      [theme.breakpoints.down("md")]: {
+        height: "100%",
+        flexDirection: "column",
+        padding: "20px",
+      },
+    },
+    logo: {
+      flex: 1,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      [theme.breakpoints.down("md")]: {
+        display: "none",
+      },
+    },
+    form: {
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "center",
+      gap: "15px",
+      padding: "0 40px",
+      overflow: "auto",
+      [theme.breakpoints.down("md")]: {
+        padding: "0",
+        width: "100%",
+        gap: "10px",
+        justifyContent: "flex-start",
+        paddingTop: "20px",
+      },
+    },
+    logoImage: {
+      maxWidth: "100%",
+      maxHeight: "100%",
+      objectFit: "contain",
+    },
+    heading: {
+      color: colors.darkgray,
+      fontSize: "20px",
+      fontWeight: "bold",
+      margin: 0,
+      alignSelf: "flex-start",
+      marginBottom: "-5px",
+      [theme.breakpoints.down("md")]: {
+        marginBottom: "0",
+        fontSize: "18px",
+      },
+    },
+    subheading: {
+      color: colors.darkgray,
+      fontSize: "14px",
+      margin: 0,
+      alignSelf: "flex-start",
+      [theme.breakpoints.down("md")]: {
+        fontSize: "13px",
+      },
+    },
+    inputLabel: {
+      color: colors.darkgray,
+      fontSize: "12px",
+      marginBottom: "3px",
+      alignSelf: "flex-start",
+    },
+    input: {
+      width: "100%",
+      padding: "10px",
+      border: `1px solid ${colors.gray}`,
+      borderRadius: "5px",
+      fontSize: "13px",
+      "&:focus": {
+        outline: "none",
+        borderColor: colors.primary,
+        boxShadow: `0 0 0 2px ${colors.shadow}`,
+      },
+    },
+    loginButton: {
+      width: "100%",
+      padding: "10px",
+      backgroundColor: colors.primary,
+      color: colors.white,
+      border: "none",
+      borderRadius: "5px",
+      cursor: "pointer",
+      fontSize: "14px",
+      transition: "background-color 0.3s ease",
+      "&:hover": {
+        backgroundColor: colors.tertiary,
+      },
+    },
+    mobileRegister: {
+      display: "none",
+      [theme.breakpoints.down("md")]: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "10px",
+        marginTop: "15px",
+        color: colors.darkgray,
+        fontSize: "12px",
+        "& a": {
+          color: colors.primary,
+          textDecoration: "none",
+          "&:hover": {
+            textDecoration: "underline",
+          },
         },
       },
     },
-  },
-}));
+  }));
 
 const NewResetPasswordPage = () => {
-  const classes = useStyles();
+  useActiveTheme();
+  useCompanyLogo();
+  const [colors] = useRecoilState(colorsAtom);
+  const companyLogo = useRecoilValue(companyLogoAtom);
+
+  const classes = useStyles(colors)();
   const navigate = useNavigate();
   const query = useQuery();
 
@@ -229,8 +241,11 @@ const NewResetPasswordPage = () => {
     <main className={classes.root}>
       <div className={classes.container}>
         <div className={classes.topRow}>
-          <SampleLogo className={classes.sampleLogo} />
-          <div className={classes.topRowRight}>
+        <Base64Image
+            base64String={companyLogo}
+            altText={"Company Logo"}
+            css={classes.sampleLogo}
+          />          <div className={classes.topRowRight}>
             <span>Got the password?</span>
             <button
               onClick={() => navigate("/login")}
@@ -287,7 +302,7 @@ const NewResetPasswordPage = () => {
             </button>
             <div className={classes.mobileRegister}>
               <span>Got the password?</span>
-              <a href="#" onClick={() => navigate("/test-login")}>
+              <a href="#" onClick={() => navigate("/login")}>
                 Login
               </a>
             </div>

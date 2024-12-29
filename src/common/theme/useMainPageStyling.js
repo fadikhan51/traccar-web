@@ -173,15 +173,16 @@ const useStyles = (colors) =>
       position: "fixed",
       top: 0,
       zIndex: 1000,
-      height: (props) => (props.isMediumScreen ? "56px" : "64px"),
+      height: (props) => (props.isMediumScreen ? "75px" : "85px"),
     },
     container: {
       display: "flex",
-      alignItems: "center",
+      alignItems: "center !important",
       justifyContent: "space-between",
     },
     logo: {
-      height: (props) => (props.isMediumScreen ? "32px" : "40px"),
+      height: (props) => (props.isMediumScreen ? "50px" : "60px"),
+      marginLeft: (props) => (props.isMediumScreen ? "12px" : ""),
       width: "auto",
       transition: "transform 0.2s ease",
       "&:hover": {

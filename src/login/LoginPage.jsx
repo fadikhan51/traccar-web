@@ -20,6 +20,9 @@ import { useCatch } from '../reactHelper';
 import Loader from '../common/components/Loader';
 import Logo from '../resources/images/welcome.svg?react';
 
+import { useRecoilValue } from "recoil";
+import { colorsAtom } from '../recoil/atoms/colorsAtom';
+
 
 const useStyles = makeStyles((theme) => ({
   options: {
@@ -52,6 +55,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const LoginPage = () => {
+  const themess = useRecoilValue(colorsAtom);
   const classes = useStyles();
   const dispatch = useDispatch();
   const navigate = useNavigate();
