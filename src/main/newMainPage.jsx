@@ -17,6 +17,8 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  ListItemButton,
+  ListItemText
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -225,6 +227,8 @@ const NewMainPage = () => {
               width: `calc(${
                 toolbarRef.current?.clientWidth
               }px - ${theme.spacing(4)})`,
+              maxHeight: '220px',
+              overflowY: 'auto',
             },
           },
         }}
@@ -232,24 +236,13 @@ const NewMainPage = () => {
         disableAutoFocus
         disableEnforceFocus
       >
-        {filteredDevices.slice(0, 3).map((_, index) => (
+        {filteredDevices.map((_, index) => (
           <DeviceRow
             key={filteredDevices[index].id}
             data={filteredDevices}
             index={index}
           />
         ))}
-        {filteredDevices.length > 3 && (
-          <ListItemButton
-            alignItems="center"
-            onClick={() => setDevicesOpen(true)}
-          >
-            <ListItemText
-              primary={t("notificationAlways")}
-              style={{ textAlign: "center" }}
-            />
-          </ListItemButton>
-        )}
       </Popover>
       <div
         className={`${classes.menuItem} ${classes.accountSettings}`}
@@ -260,18 +253,18 @@ const NewMainPage = () => {
       </div>
     </div>
   );
+
+
   return (
     <div className={classes.mainContainer}>
       <nav className={classes.navbar} style={{ display: 'flex', alignItems: 'center !important', justifyContent: 'space-between' }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          {isMediumScreen && (
             <IconButton
               className={`${classes.menuButton} ${classes.addButton}`}
               onClick={toggleSidebar}
             >
               <MenuIcon />
             </IconButton>
-          )}
           <Base64Image
             base64String={companyLogo}
             altText={"Company Logo"}
@@ -329,6 +322,8 @@ const NewMainPage = () => {
                         width: `calc(${
                           toolbarRef.current?.clientWidth
                         }px - ${theme.spacing(4)})`,
+                        maxHeight: '220px',
+                        overflowY: 'auto',
                       },
                     },
                   }}
@@ -336,24 +331,14 @@ const NewMainPage = () => {
                   disableAutoFocus
                   disableEnforceFocus
                 >
-                  {filteredDevices.slice(0, 3).map((_, index) => (
+                  {filteredDevices.map((_, index) => (
                     <DeviceRow
                       key={filteredDevices[index].id}
                       data={filteredDevices}
                       index={index}
                     />
                   ))}
-                  {filteredDevices.length > 3 && (
-                    <ListItemButton
-                      alignItems="center"
-                      onClick={() => setDevicesOpen(true)}
-                    >
-                      <ListItemText
-                        primary={t("notificationAlways")}
-                        style={{ textAlign: "center" }}
-                      />
-                    </ListItemButton>
-                  )}
+                  
                 </Popover>
                 <Popover
                   open={!!filterAnchorEl}
@@ -513,7 +498,17 @@ const NewMainPage = () => {
           </Menu>
         </div>
       </nav>
-
+      <Paper 
+        className={classes.sideDevices}
+      >
+        {filteredDevices.map((_, index) => (
+          <DeviceRow
+            key={filteredDevices[index].id}
+            data={filteredDevices}
+            index={index}
+          />
+        ))}
+      </Paper>
       {isMediumScreen ? (
         <>
           <Drawer
@@ -687,7 +682,21 @@ const NewMainPage = () => {
           </Drawer>
         </>
       ) : (
+        <div
+        style={{zIndex : 3}}>
+        <Drawer
+            anchor="left"
+            open={isSidebarOpen}
+            onClose={toggleSidebar}
+            variant="persistent"
+            transitionDuration={300}
+            SlideProps={{
+              easing: theme.transitions.easing.easeInOut,
+            }}
+          >
         <SidebarContent />
+        </Drawer>
+        </div>
       )}
 
       <div className={classes.mapContainer}>

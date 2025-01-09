@@ -1,3 +1,4 @@
+import zIndex from "@mui/material/styles/zIndex";
 import { makeStyles } from "@mui/styles";
 
 const useStyles = (colors) =>
@@ -9,6 +10,19 @@ const useStyles = (colors) =>
       "*": {
         fontFamily: "Poppins, sans-serif",
         color: colors.darkgray,
+        "&::-webkit-scrollbar": {
+          width: "5px",
+          margin: "2px",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: colors.muted,
+          borderRadius: "4px",
+          margin: "2px",
+        },
+        "&::-webkit-scrollbar-track": {
+          backgroundColor: "transparent",
+          margin: "2px",
+        },
       },
       'div[role="presentation"]': {
         "& *": {
@@ -175,6 +189,14 @@ const useStyles = (colors) =>
       zIndex: 1000,
       height: (props) => (props.isMediumScreen ? "75px" : "85px"),
     },
+    sideDevices: {
+      width: (props) => (props.isMediumScreen ? "190px" : "230px"),
+      height: (props) => (props.isMediumScreen ? "calc(100vh - 85px)" : "calc(100vh - 95px)"),
+      overflowY: 'auto',
+      margin: '4px',
+      marginTop: (props) => (props.isMediumScreen ? "80px" : "90px"),
+      zIndex: 2,
+    },
     container: {
       display: "flex",
       alignItems: "center !important",
@@ -307,6 +329,7 @@ const useStyles = (colors) =>
       top: (props) => (props.isMediumScreen ? "0" : "64px"),
       left: 0,
       transition: "transform 0.3s ease-in-out",
+      boxShadow: "6px 0 10px -2px rgba(0, 0, 0, 0.15)",
     },
     menuItem: {
       display: "flex",
@@ -314,20 +337,20 @@ const useStyles = (colors) =>
       padding: "12px 24px",
       color: `${colors.darkgray} !important`,
       cursor: "pointer",
-      transition: "background-color 0.2s ease, color 0.2s ease", // Specify the properties
+      transition: "background-color 0.2s ease, color 0.2s ease",
       fontSize: "13px",
       "&:hover": {
         backgroundColor: `${colors.accent} !important`,
         "& *": {
           color: `${colors.primary} !important`,
-          transition: "color 0.2s ease", // Add transition for nested elements
+          transition: "color 0.2s ease",
         },
       },
       "& .MuiSvgIcon-root": {
         marginRight: "12px",
         fontSize: "20px",
         width: "24px",
-        transition: "color 0.2s ease", // Add transition for icons
+        transition: "color 0.2s ease",
       },
     },
     accountSettings: {

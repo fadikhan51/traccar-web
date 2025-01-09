@@ -64,10 +64,16 @@ const useStyles = (colors) => makeStyles((theme) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    color: colors.darkgray,
     padding: "0 20px",
     [theme.breakpoints.down("md")]: {
       display: "none",
     },
+  },
+  leftTitle: {
+    color: colors.darkgray,
+    fontSize: "12px",
+    fontWeight: "bold",
   },
   topRowRight: {
     display: "flex",
@@ -344,11 +350,12 @@ const NewLoginPage = () => {
     <main className={classes.root}>
       <div className={classes.container}>
         <div className={classes.topRow}>
-        <Base64Image
+        {/* <Base64Image
             base64String={companyLogo}
             altText={"Company Logo"}
             css={classes.sampleLogo}
-          />
+          /> */}
+          <span className={classes.leftTitle}>Authentication Gateway</span>
           {/* <SampleLogo className={} /> */}
           <div className={classes.topRowRight}>
             <span>Don't have an account?</span>
@@ -362,10 +369,15 @@ const NewLoginPage = () => {
         </div>
         <div className={classes.bottomRow}>
           <div className={classes.logo}>
-            <img src={Logo} alt="Logo" className={classes.logoImage} />
+          <Base64Image
+            base64String={companyLogo}
+            altText={"Company Logo"}
+            css={classes.logoImage}
+          />
+            {/* <img src={Logo} alt="Logo" className={classes.logoImage} /> */}
           </div>
           <div className={classes.form}>
-            <h1 className={classes.heading}>Welcome to BoxTechAI</h1>
+            <h1 className={classes.heading}>Welcome to BoxTech</h1>
             <p className={classes.subheading}>Login to your account</p>
             <div style={{ width: "100%" }}>
               <label className={classes.inputLabel}>Email</label>

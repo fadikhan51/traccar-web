@@ -78,6 +78,11 @@ const useStyles = (colors) =>
       height: "30px",
       width: "auto",
     },
+    leftTitle: {
+      color: colors.darkgray,
+      fontSize: "12px",
+      fontWeight: "bold",
+    },
     bottomRow: {
       height: "85%",
       display: "flex",
@@ -242,11 +247,13 @@ const NewRegisterPage = () => {
     <main className={classes.root}>
       <div className={classes.container}>
         <div className={classes.topRow}>
-        <Base64Image
+          {/* <Base64Image
             base64String={companyLogo}
             altText={"Company Logo"}
             css={classes.sampleLogo}
-          />
+          /> */}
+          <span className={classes.leftTitle}>Authentication Gateway</span>
+
           {/* <SampleLogo className={classes.sampleLogo} /> */}
           <div className={classes.topRowRight}>
             <span>Already have an account?</span>
@@ -260,7 +267,11 @@ const NewRegisterPage = () => {
         </div>
         <div className={classes.bottomRow}>
           <div className={classes.logo}>
-            <img src={Logo} alt="Logo" className={classes.logoImage} />
+            <Base64Image
+              base64String={companyLogo}
+              altText={"Company Logo"}
+              css={classes.logoImage}
+            />{" "}
           </div>
           <div className={classes.form}>
             <h1 className={classes.heading}>Welcome to BoxTechAI</h1>

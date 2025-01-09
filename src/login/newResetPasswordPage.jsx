@@ -57,6 +57,11 @@ const useStyles = (colors) =>
         display: "none",
       },
     },
+    leftTitle: {
+      color: colors.darkgray,
+      fontSize: "12px",
+      fontWeight: "bold",
+    },
     topRowRight: {
       display: "flex",
       alignItems: "center",
@@ -241,11 +246,9 @@ const NewResetPasswordPage = () => {
     <main className={classes.root}>
       <div className={classes.container}>
         <div className={classes.topRow}>
-        <Base64Image
-            base64String={companyLogo}
-            altText={"Company Logo"}
-            css={classes.sampleLogo}
-          />          <div className={classes.topRowRight}>
+          <span className={classes.leftTitle}>Authentication Gateway</span>
+
+          <div className={classes.topRowRight}>
             <span>Got the password?</span>
             <button
               onClick={() => navigate("/login")}
@@ -257,7 +260,11 @@ const NewResetPasswordPage = () => {
         </div>
         <div className={classes.bottomRow}>
           <div className={classes.logo}>
-            <img src={Logo} alt="Logo" className={classes.logoImage} />
+            <Base64Image
+              base64String={companyLogo}
+              altText={"Company Logo"}
+              css={classes.logoImage}
+            />{" "}
           </div>
           <div className={classes.form}>
             <h1 className={classes.heading}>Reset Password</h1>
